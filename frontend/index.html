@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration & Login</title>
+    <style>
+        body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    color: #fff;
+    background: linear-gradient(to right, #141e30, #243b55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.form-container {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    color: #03e9f4;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #fff;
+    border: none;
+    border-bottom: 1px solid #fff;
+    outline: none;
+    background: transparent;
+}
+
+.input-group label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #fff;
+    pointer-events: none;
+    transition: .5s;
+}
+
+.input-group input:focus ~ label,
+.input-group input:valid ~ label {
+    top: -20px;
+    left: 0;
+    color: #03e9f4;
+    font-size: 12px;
+}
+
+button {
+    background: #03e9f4;
+    color: #1a2938;
+    border: none;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+button:hover {
+    background: #fff;
+    color: #141e30;
+}
+
+.hidden {
+    display: none;
+}
+
+.message {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.message a {
+    color: #03e9f4;
+    text-decoration: none;
+}
+
+.message a:hover {
+    text-decoration: underline;
+}
+
+.role-group {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    color: #fff;
+}
+.role-group label {
+    cursor: pointer;
+}
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <!-- Registration Form -->
+        <div class="form-container" id="registration-container">
+            <form id="registration-form">
+                <h2>Create Account</h2>
+                <div class="input-group">
+                    <input type="text" id="reg-username" required>
+                    <label for="reg-username">Username</label>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="reg-email" required>
+                    <label for="reg-email">Email</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="reg-password" required>
+                    <label for="reg-password">Password</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="reg-confirm-password" required>
+                    <label for="reg-confirm-password">Confirm Password</label>
+                </div>
+                <div class="role-group">
+                    <label>
+                        <input type="radio" name="role" value="student" checked> Student
+                    </label>
+                    <label>
+                        <input type="radio" name="role" value="admin"> Admin
+                    </label>
+                </div>
+                <button type="submit">Register</button>
+                <p class="message">Already registered? <a href="#" id="show-login-link">Sign In</a></p>
+            </form>
+        </div>
+
+        <!-- Login Form -->
+        <div class="form-container hidden" id="login-container">
+            <form id="login-form">
+                <h2>Login</h2>
+                <div class="input-group">
+                    <input type="text" id="login-username" required>
+                    <label for="login-username">Username or Email</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-password" required>
+                    <label for="login-password">Password</label>
+                </div>
+                <button type="submit">Login</button>
+                 <p class="message">Not registered? <a href="#" id="show-register-link">Create an account</a></p>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const registrationContainer = document.getElementById('registration-container');
+    const loginContainer = document.getElementById('login-container');
+    const registrationForm = document.getElementById('registration-form');
+    const loginForm = document.getElementById('login-form');
+    const showLoginLink = document.getElementById('show-login-link');
+    const showRegisterLink = document.getElementById('show-register-link');
+
+    // Function to switch to the login form
+    const showLogin = () => {
+        registrationContainer.classList.add('hidden');
+        loginContainer.classList.remove('hidden');
+    };
+
+    // Function to switch to the registration form
+    const showRegister = () => {
+        loginContainer.classList.add('hidden');
+        registrationContainer.classList.remove('hidden');
+    };
+
+    // On page load, check if the user has already registered
+    if (localStorage.getItem('hasVisited')) {
+        showLogin();
+    } else {
+        showRegister();
+    }
+
+    // Event listeners for the "switch form" links
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showLogin();
+    });
+
+    showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showRegister();
+    });
+
+    // Handle the registration form submission
+    registrationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('reg-username').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const confirmPassword = document.getElementById('reg-confirm-password').value;
+        const role = document.querySelector('input[name="role"]:checked').value;
+
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:5000/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password, role })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                if (role === 'student') {
+                    // Auto-login context for the next step
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('role', role);
+                    localStorage.setItem('userId', data.id);
+                    window.location.href = 'select_subjects.html';
+                } else {
+                    alert("Admin Registration successful! Please log in.");
+                    showLogin();
+                    registrationForm.reset();
+                }
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert("Failed to connect to server.");
+        }
+    });
+
+    // Handle the login form submission
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usernameOrEmail = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+
+        try {
+            const response = await fetch('http://localhost:5000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usernameOrEmail, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('username', data.username); // Store username for dashboard display
+                localStorage.setItem('role', data.role); // Store role
+                if (data.student && data.student.id) {
+                    localStorage.setItem('userId', data.student.id); // Store User ID
+                }
+                alert("Login successful!");
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert("Failed to connect to server.");
+        }
+    });
+});
+
+    </script>
+</body>
+</html>

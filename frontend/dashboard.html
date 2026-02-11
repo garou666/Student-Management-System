@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            background: linear-gradient(to right, #141e30, #243b55);
+            min-height: 100vh;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar h2 {
+            color: #03e9f4;
+            text-align: center;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .nav-links li {
+            margin-bottom: 15px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(3, 233, 244, 0.1);
+            color: #03e9f4;
+            box-shadow: 0 0 10px rgba(3, 233, 244, 0.1);
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #03e9f4;
+            color: #03e9f4;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            background: #03e9f4;
+            color: #141e30;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            /* Sticky Header Styles */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(20, 30, 48, 0.95);
+            margin: -40px -40px 40px -40px; /* Counteract main-content padding */
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 400;
+        }
+
+        header .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto; /* Ensures it stays on the right */
+        }
+
+        header .user-profile span {
+            color: #03e9f4;
+            font-weight: bold;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(3, 233, 244, 0.3);
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .card .icon {
+            float: right;
+            font-size: 24px;
+            color: #03e9f4;
+            opacity: 0.7;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Recent Activity Table */
+        .recent-activity {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .recent-activity h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: #03e9f4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            color: #aaa;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            font-size: 15px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.good { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .status.average { background: rgba(241, 196, 15, 0.2); color: #f1c40f; }
+        .status.poor { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+        }
+
+        /* Course Card Specifics */
+        .course-card {
+            border-left: 4px solid #03e9f4; /* Default color */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .course-card h3 { /* Overriding the generic card h3 */
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .course-card .course-details p {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+
+        .course-card .course-details p span {
+            font-weight: bold;
+            color: #fff;
+            float: right;
+        }
+
+        .course-card .course-icon {
+            position: absolute;
+            right: -15px;
+            bottom: -15px;
+            font-size: 80px;
+            opacity: 0.05;
+            transform: rotate(-15deg);
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        /* Settings Form Styles */
+        .settings-form {
+            max-width: 500px;
+        }
+        .settings-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+        .settings-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 5px;
+            outline: none;
+        }
+        .edit-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .save-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .settings-form input:focus {
+            border-color: #03e9f4;
+        }
+        .settings-form button {
+            background: #03e9f4;
+            color: #141e30;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Course Management Section */
+        .course-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .course-item:last-child { border-bottom: none; }
+        .course-item-details h4 { margin-bottom: 5px; color: #fff; }
+        .course-item-details p { font-size: 14px; color: #ccc; }
+        .course-item-actions button {
+            margin-left: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            font-size: 14px;
+        }
+        .edit-btn { background-color: #3498db; }
+        .delete-btn { background-color: #e74c3c; }
+        #cancel-edit-btn, #cancel-assignment-edit-btn { 
+            background-color: #7f8c8d; 
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <h2>StudentMgmt</h2>
+            <ul class="nav-links">
+                <li><a href="#" id="nav-dashboard" class="active">Dashboard</a></li>
+                <li><a href="#" id="nav-students">Students</a></li>
+                <li><a href="#" id="nav-courses">Courses</a></li>
+                <li><a href="#" id="nav-assignments">Assignments</a></li>
+                <li><a href="#" id="nav-attendance">Attendance</a></li>
+                <li><a href="#" id="nav-settings">Settings</a></li>
+            </ul>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <h1 id="page-title">Dashboard Overview</h1>
+                <div class="user-profile">
+                    <p>Welcome, <span id="username-display"></span></p>
+                </div>
+            </header>
+
+            <!-- SECTION: Dashboard -->
+            <div id="dashboard-section">
+            <div class="stats-grid">
+                <div class="card">
+                    <div class="icon">👥</div>
+                    <h3>Total Students</h3>
+                    <div class="value" id="total-students">1,250</div>
+                </div>
+                <div class="card">
+                    <div class="icon">📚</div>
+                    <h3>Active Courses</h3>
+                    <div class="value" id="active-courses">24</div>
+                </div>
+                <div class="card">
+                    <div class="icon">📅</div>
+                    <h3>Avg Attendance</h3>
+                    <div class="value" id="avg-attendance">88%</div>
+                </div>
+                <div class="card">
+                    <div class="icon">🎓</div>
+                    <h3>Average GPA</h3>
+                    <div class="value" id="avg-gpa">3.5</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <canvas id="enrollmentChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Student Data Table -->
+            <div class="recent-activity">
+                <h2>Top Performing Students</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Attendance</th>
+                            <th>GPA</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-table-body">
+                        <!-- Rows will be populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            </div>
+
+            <!-- SECTION: Students -->
+            <div id="students-section" class="hidden">
+                <div class="recent-activity">
+                    <h2>All Registered Students</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Course</th>
+                                <th>GPA</th>
+                                <th id="admin-action-header" class="hidden">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-students-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION: Courses -->
+            <div id="courses-section" class="hidden">
+                <!-- Admin-only form for adding/editing courses -->
+                <div id="course-form-container" class="hidden recent-activity" style="margin-bottom: 30px;">
+                    <h2 id="course-form-title">Add New Course</h2>
+                    <form id="course-form" class="settings-form">
+                        <input type="hidden" id="course-id">
+                        <label for="course-name">Course Name</label>
+                        <input type="text" id="course-name" required>
+                        <label for="course-description">Description</label>
+                        <input type="text" id="course-description" placeholder="e.g., Fundamentals of programming">
+                        <button type="submit">Save Course</button>
+                        <button type="button" id="cancel-edit-btn" class="hidden">Cancel</button>
+                    </form>
+                </div>
+
+                <!-- Container for course list -->
+                <div class="recent-activity">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Courses</h2>
+                        <button id="add-course-btn" class="hidden save-btn" style="padding: 10px 15px; background-color: #03e9f4; color: #141e30;">Add New Course</button>
+                    </div>
+                    <div id="courses-list"></div>
+                </div>
+            </div>
+
+            <!-- SECTION: Assignments -->
+            <div id="assignments-section" class="hidden">
+                <!-- Admin-only form for adding/editing assignments -->
+                <div id="assignment-form-container" class="hidden recent-activity" style="margin-bottom: 30px;">
+                    <h2 id="assignment-form-title">Add New Assignment</h2>
+                    <form id="assignment-form" class="settings-form">
+                        <input type="hidden" id="assignment-id">
+                        
+                        <label for="assignment-courseName">Course</label>
+                        <select id="assignment-courseName" class="edit-input" required style="padding: 12px; margin-bottom: 20px;"></select>
+                        
+                        <label for="assignment-title">Title</label>
+                        <input type="text" id="assignment-title" required>
+                        
+                        <label for="assignment-description">Description</label>
+                        <input type="text" id="assignment-description">
+                        
+                        <label for="assignment-dueDate">Due Date</label>
+                        <input type="date" id="assignment-dueDate" required>
+                        
+                        <button type="submit">Save Assignment</button>
+                        <button type="button" id="cancel-assignment-edit-btn" class="hidden">Cancel</button>
+                    </form>
+                </div>
+
+                <div class="recent-activity">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Assignments</h2>
+                        <button id="add-assignment-btn" class="hidden save-btn" style="padding: 10px 15px; background-color: #03e9f4; color: #141e30;">Add New Assignment</button>
+                    </div>
+                    <div id="assignments-list"></div>
+                </div>
+            </div>
+
+            <!-- SECTION: Attendance -->
+            <div id="attendance-section" class="hidden">
+                <div class="recent-activity">
+                    <h2>Attendance Records</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Course</th>
+                                <th>Attendance %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION: Settings -->
+            <div id="settings-section" class="hidden">
+                <div class="recent-activity">
+                    <h2>Account Settings</h2>
+                    <form class="settings-form">
+                        <label>Username</label>
+                        <input type="text" id="settings-username" readonly value="User">
+                        
+                        <label>Email</label>
+                        <input type="email" id="settings-email" readonly value="user@example.com">
+
+                        <label>Change Password</label>
+                        <input type="password" placeholder="Enter new password">
+                        
+                        <button type="button" onclick="alert('Settings updated!')">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Check Authentication (Simulated based on previous context)
+            const username = localStorage.getItem('username');
+            const role = localStorage.getItem('role');
+
+            if (username) {
+                document.getElementById('username-display').textContent = `${username} (${role})`;
+                document.getElementById('settings-username').value = username;
+            }
+
+            // Show Admin specific headers if admin
+            if (role === 'admin') {
+                document.getElementById('admin-action-header').classList.remove('hidden');
+            }
+
+            // Navigation Logic
+            const navLinks = {
+                'nav-dashboard': document.getElementById('dashboard-section'),
+                'nav-students': document.getElementById('students-section'),
+                'nav-courses': document.getElementById('courses-section'),
+                'nav-assignments': document.getElementById('assignments-section'),
+                'nav-attendance': document.getElementById('attendance-section'),
+                'nav-settings': document.getElementById('settings-section')
+            };
+
+            Object.keys(navLinks).forEach(navId => {
+                document.getElementById(navId).addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Update Active Link
+                    document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+                    document.getElementById(navId).classList.add('active');
+
+                    // Show/Hide Sections
+                    Object.values(navLinks).forEach(section => section.classList.add('hidden'));
+                    navLinks[navId].classList.remove('hidden');
+
+                    // Update Title
+                    const titleMap = {
+                        'nav-dashboard': 'Dashboard Overview',
+                        'nav-students': 'Student Directory',
+                        'nav-courses': 'Course Management',
+                        'nav-assignments': 'Assignments Overview',
+                        'nav-attendance': 'Attendance Tracking',
+                        'nav-settings': 'System Settings'
+                    };
+                    document.getElementById('page-title').textContent = titleMap[navId];
+
+                    // If courses tab is clicked, load the courses
+                    if (navId === 'nav-courses') {
+                        loadCourses();
+                    }
+                    if (navId === 'nav-assignments') {
+                        loadAssignments();
+                    }
+                });
+            });
+
+            // 2. Fetch Courses AND Students
+            Promise.all([
+                fetch('http://localhost:5000/api/courses').then(res => res.json()),
+                fetch('http://localhost:5000/api/students').then(res => res.json())
+            ])
+                .then(([coursesData, studentsData]) => {
+                    if (!Array.isArray(studentsData)) {
+                        console.error("Failed to load data");
+                        return;
+                    }
+                    const studentsList = studentsData;
+                    const allCourses = coursesData;
+
+                    const tableBody = document.getElementById('student-table-body');
+                    const allStudentsBody = document.getElementById('all-students-body');
+                    const attendanceBody = document.getElementById('attendance-body');
+                    const coursesGrid = document.getElementById('courses-grid');
+                    
+                    // Update Total Students Count
+                    document.getElementById('total-students').innerText = studentsList.length;
+
+                    // --- Enhanced Course Section Logic ---
+
+                    // 1. Define a color palette and icons for courses
+                    const courseStyles = {
+                        'Computer Science': { color: '#03e9f4', icon: '💻' },
+                        'Mathematics': { color: '#ff7b54', icon: '➗' },
+                        'Physics': { color: '#ffb26b', icon: '⚛️' },
+                        'Engineering': { color: '#ffd56b', icon: '⚙️' },
+                        'Cybersecurity': { color: '#939b62', icon: '🛡️' },
+                        'General': { color: '#cccccc', icon: '📚' }
+                    };
+                    let styleIndex = 0;
+                    const styleKeys = Object.keys(courseStyles);
+
+                    // 2. Aggregate detailed data for each course
+                    const courseData = {};
+
+                    studentsList.forEach(student => {
+                        let statusClass = 'average';
+                        let statusText = 'Average';
+                        if (student.gpa >= 3.5) {
+                            statusClass = 'good';
+                            statusText = 'Excellent';
+                        } else if (student.gpa < 3.0) {
+                            statusClass = 'poor';
+                            statusText = 'Needs Improvement';
+                        }
+
+                        // Populate Dashboard Table
+                        const row = `
+                            <tr>
+                                <td>${student.username}</td>
+                                <td>${student.course}</td>
+                                <td>${student.attendance}%</td>
+                                <td>${student.gpa}</td>
+                                <td><span class="status ${statusClass}">${statusText}</span></td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+
+                        // Populate All Students Table in Students Section
+                        let courseCell = student.course;
+                        let actionCell = '';
+
+                        // If Admin, make Course and Attendance editable
+                        if (role === 'admin') {
+                            // Generate options for multi-select
+                            const studentCourses = student.course.split(',').map(s => s.trim());
+                            let optionsHtml = '';
+                            allCourses.forEach(c => {
+                                const isSelected = studentCourses.includes(c.name) ? 'selected' : '';
+                                optionsHtml += `<option value="${c.name}" ${isSelected}>${c.name}</option>`;
+                            });
+
+                            courseCell = `
+                                <select class="edit-input" id="course-${student.id}" multiple style="height: 80px;">
+                                    ${optionsHtml}
+                                </select>
+                                <div style="font-size:10px; color:#aaa;">Hold Ctrl to select multiple (Max 3)</div>
+                            `;
+                            // We'll allow editing attendance here too for simplicity, or just course
+                            // Let's add an attendance input to this row for admins
+                        }
+
+                        if (role === 'admin') {
+                            actionCell = `
+                                <td>
+                                    <button class="save-btn" onclick="updateStudent('${student.id}')">Save</button>
+                                    <button class="save-btn" onclick="deleteStudent('${student.id}')" style="background-color: #e74c3c; margin-left: 5px;">Delete</button>
+                                </td>
+                            `;
+                        }
+
+                        const studentRow = `
+                            <tr>
+                                <td>${student.id || 'N/A'}</td>
+                                <td>${student.username}</td>
+                                <td>${student.email}</td>
+                                <td>${courseCell}</td>
+                                <td>${student.gpa}</td>
+                                ${actionCell}
+                            </tr>
+                        `;
+                        allStudentsBody.innerHTML += studentRow;
+
+                        // Populate Attendance Table in Attendance Section
+                        let attStatus = student.attendance >= 75 ? 'good' : 'poor';
+                        let attText = student.attendance >= 75 ? 'On Track' : 'Low Attendance';
+                        const attRow = `
+                            <tr>
+                                <td>${student.username}</td>
+                                <td>${student.course}</td>
+                                <td>${student.attendance}%</td>
+                                <td><span class="status ${attStatus}">${attText}</span></td>
+                            </tr>
+                        `;
+                        attendanceBody.innerHTML += attRow;
+
+                        // Aggregate data for course section
+                        // Handle multiple courses for stats
+                        const studentCourses = student.course.split(',').map(s => s.trim());
+                        studentCourses.forEach(courseName => {
+                            if (!courseData[courseName]) {
+                                courseData[courseName] = {
+                                    count: 0,
+                                    totalGpa: 0,
+                                    totalAttendance: 0,
+                                };
+                            }
+                            courseData[courseName].count++;
+                            courseData[courseName].totalGpa += parseFloat(student.gpa);
+                            courseData[courseName].totalAttendance += student.attendance;
+                        });
+                    });
+
+                    // 3. Populate Courses Grid with new attractive cards
+                    document.getElementById('active-courses').innerText = Object.keys(courseData).length;
+                    coursesGrid.innerHTML = ''; // Clear placeholder content
+                    for (const [courseName, data] of Object.entries(courseData)) {
+                        const avgGpa = (data.totalGpa / data.count).toFixed(2);
+                        const avgAttendance = Math.round(data.totalAttendance / data.count);
+                        const style = courseStyles[courseName] || styleKeys[styleIndex++ % styleKeys.length];
+
+                        const courseCard = `
+                            <div class="card course-card" style="border-left-color: ${style.color};">
+                                <h3>${courseName}</h3>
+                                <div class="course-details">
+                                    <p>Enrolled Students: <span>${data.count}</span></p>
+                                    <p>Average GPA: <span>${avgGpa}</span></p>
+                                    <p>Average Attendance: <span>${avgAttendance}%</span></p>
+                                </div>
+                                <div class="course-icon">${style.icon}</div>
+                            </div>
+                        `;
+                        coursesGrid.innerHTML += courseCard;
+                    }
+                })
+                .catch(error => console.error('Error fetching students:', error));
+
+            // 4. Logout Functionality
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                if(confirm('Are you sure you want to logout?')) {
+                    // Redirect to login page
+                    window.location.href = 'index.html';
+                }
+            });
+
+            // 5. Initialize Charts
+            const ctx1 = document.getElementById('enrollmentChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Computer Science', 'Mathematics', 'Physics', 'Engineering', 'Cybersecurity'],
+                    datasets: [{
+                        data: [350, 200, 150, 250, 300],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#fff' } },
+                        title: { display: true, text: 'Student Enrollment by Course', color: '#fff', font: { size: 16 } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('attendanceChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [{
+                        label: 'Average Attendance (%)',
+                        data: [85, 88, 92, 87, 80],
+                        backgroundColor: 'rgba(3, 233, 244, 0.5)',
+                        borderColor: '#03e9f4',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#fff' } },
+                        x: { grid: { display: false }, ticks: { color: '#fff' } }
+                    },
+                    plugins: { legend: { labels: { color: '#fff' } }, title: { display: true, text: 'Weekly Attendance Overview', color: '#fff', font: { size: 16 } } }
+                }
+            });
+        });
+
+        // Global function for Admin to update student
+        function updateStudent(id) {
+            const select = document.getElementById(`course-${id}`);
+            const selectedOptions = Array.from(select.selectedOptions).map(opt => opt.value);
+            
+            if (selectedOptions.length > 3) {
+                return alert("Please select a maximum of 3 subjects.");
+            }
+            const courseStr = selectedOptions.join(', ');
+            
+            fetch(`http://localhost:5000/api/students/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ course: courseStr, attendance: 80 }) // Defaulting attendance or fetch from an input if added
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload(); // Reload to reflect changes
+            })
+            .catch(err => console.error(err));
+        }
+
+        // Global function for Admin to delete student
+        function deleteStudent(id) {
+            if (!confirm("Are you sure you want to delete this student?")) return;
+
+            fetch(`http://localhost:5000/api/students/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload(); // Reload to reflect changes
+            })
+            .catch(err => console.error(err));
+        }
+
+        // --- Course Management Functions ---
+
+        const courseFormContainer = document.getElementById('course-form-container');
+        const courseForm = document.getElementById('course-form');
+        const courseFormTitle = document.getElementById('course-form-title');
+        const courseIdInput = document.getElementById('course-id');
+        const courseNameInput = document.getElementById('course-name');
+        const courseDescriptionInput = document.getElementById('course-description');
+        const addCourseBtn = document.getElementById('add-course-btn');
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+
+        // Load all courses from the server
+        async function loadCourses() {
+            const coursesList = document.getElementById('courses-list');
+            const role = localStorage.getItem('role');
+            const userId = localStorage.getItem('userId');
+
+            coursesList.innerHTML = '<p style="padding: 15px; color: #ccc;">Loading courses...</p>';
+
+            try {
+                // 1. Fetch all available courses (for metadata like description)
+                const coursesResponse = await fetch('http://localhost:5000/api/courses');
+                const allCourses = await coursesResponse.json();
+
+                let displayCourses = allCourses;
+
+                // 2. If Student, fetch their specific record to filter enrolled courses
+                if (role === 'student' && userId) {
+                    const studentResponse = await fetch(`http://localhost:5000/api/students/${userId}`);
+                    if (studentResponse.ok) {
+                        const studentData = await studentResponse.json();
+                        // studentData.course is a comma-separated string e.g. "Math, Physics"
+                        const enrolled = studentData.course ? studentData.course.split(',').map(s => s.trim()) : [];
+                        
+                        displayCourses = allCourses.filter(course => enrolled.includes(course.name));
+                    }
+                }
+
+                // 3. Render
+                coursesList.innerHTML = ''; 
+
+                if (role === 'admin') {
+                    addCourseBtn.classList.remove('hidden');
+                } else {
+                    addCourseBtn.classList.add('hidden');
+                }
+
+                if (displayCourses.length === 0) {
+                    coursesList.innerHTML = '<p style="padding: 15px;">No enrolled courses found.</p>';
+                    return;
+                }
+
+                displayCourses.forEach(course => {
+                    const item = document.createElement('div');
+                    item.className = 'course-item';
+                    
+                    let actionsHTML = '';
+                    if (role === 'admin') {
+                        actionsHTML = `
+                            <div class="course-item-actions">
+                                <button class="edit-btn" onclick="editCourse(${course.id}, '${course.name}', '${course.description || ''}')">Edit</button>
+                                <button class="delete-btn" onclick="deleteCourse(${course.id})">Delete</button>
+                            </div>
+                        `;
+                    }
+
+                    item.innerHTML = `
+                        <div class="course-item-details">
+                            <h4>${course.name}</h4>
+                            <p>${course.description || 'No description'}</p>
+                        </div>
+                        ${actionsHTML}
+                    `;
+                    coursesList.appendChild(item);
+                });
+            } catch (error) {
+                console.error("Error loading courses:", error);
+                coursesList.innerHTML = '<p style="padding: 15px; color: #e74c3c;">Error loading courses.</p>';
+            }
+        }
+
+        // Show the form to add a new course
+        addCourseBtn.addEventListener('click', () => {
+            courseFormContainer.classList.remove('hidden');
+            courseFormTitle.textContent = 'Add New Course';
+            courseForm.reset();
+            courseIdInput.value = '';
+            cancelBtn.classList.add('hidden');
+        });
+
+        // Show the form to edit an existing course
+        function editCourse(id, name, description) {
+            courseFormContainer.classList.remove('hidden');
+            courseFormTitle.textContent = 'Edit Course';
+            courseIdInput.value = id;
+            courseNameInput.value = name;
+            courseDescriptionInput.value = description;
+            cancelBtn.classList.remove('hidden');
+            window.scrollTo(0, 0); // Scroll to top to see the form
+        }
+
+        // Cancel edit/add
+        cancelBtn.addEventListener('click', () => {
+            courseFormContainer.classList.add('hidden');
+            courseForm.reset();
+        });
+
+        // Handle form submission for both Add and Edit
+        courseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = courseIdInput.value;
+            const name = courseNameInput.value;
+            const description = courseDescriptionInput.value;
+            
+            const isEditing = !!id;
+            const url = isEditing ? `/api/courses/${id}` : '/api/courses';
+            const method = isEditing ? 'PUT' : 'POST';
+
+            const response = await fetch(`http://localhost:5000${url}`, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+
+            if (response.ok) {
+                courseFormContainer.classList.add('hidden');
+                courseForm.reset();
+                loadCourses(); // Refresh the list
+            }
+        });
+
+        // Delete a course
+        async function deleteCourse(id) {
+            if (!confirm('Are you sure you want to delete this course?')) return;
+
+            const response = await fetch(`http://localhost:5000/api/courses/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                loadCourses(); // Refresh the list
+            }
+        }
+
+        // --- Assignment Management Functions ---
+
+        const assignmentFormContainer = document.getElementById('assignment-form-container');
+        const assignmentForm = document.getElementById('assignment-form');
+        const assignmentFormTitle = document.getElementById('assignment-form-title');
+        const assignmentIdInput = document.getElementById('assignment-id');
+        const assignmentCourseNameSelect = document.getElementById('assignment-courseName');
+        const assignmentTitleInput = document.getElementById('assignment-title');
+        const assignmentDescriptionInput = document.getElementById('assignment-description');
+        const assignmentDueDateInput = document.getElementById('assignment-dueDate');
+        const addAssignmentBtn = document.getElementById('add-assignment-btn');
+        const cancelAssignmentBtn = document.getElementById('cancel-assignment-edit-btn');
+
+        async function loadAssignments() {
+            const assignmentsList = document.getElementById('assignments-list');
+            const role = localStorage.getItem('role');
+            const userId = localStorage.getItem('userId');
+
+            assignmentsList.innerHTML = '<p style="padding: 15px; color: #ccc;">Loading assignments...</p>';
+
+            try {
+                const [assignmentsRes, coursesRes] = await Promise.all([
+                    fetch('http://localhost:5000/api/assignments'),
+                    fetch('http://localhost:5000/api/courses')
+                ]);
+
+                const allAssignments = await assignmentsRes.json();
+                const allCourses = await coursesRes.json();
+                let displayAssignments = allAssignments;
+
+                if (role === 'student' && userId) {
+                    const studentRes = await fetch(`http://localhost:5000/api/students/${userId}`);
+                    if (studentRes.ok) {
+                        const studentData = await studentRes.json();
+                        const enrolledCourses = studentData.course ? studentData.course.split(',').map(s => s.trim()) : [];
+                        displayAssignments = allAssignments.filter(assignment => enrolledCourses.includes(assignment.courseName));
+                    }
+                }
+
+                assignmentsList.innerHTML = '';
+
+                if (role === 'admin') {
+                    addAssignmentBtn.classList.remove('hidden');
+                    assignmentCourseNameSelect.innerHTML = allCourses.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                } else {
+                    addAssignmentBtn.classList.add('hidden');
+                }
+
+                if (displayAssignments.length === 0) {
+                    assignmentsList.innerHTML = '<p style="padding: 15px;">No assignments found.</p>';
+                    return;
+                }
+
+                displayAssignments.forEach(assignment => {
+                    const item = document.createElement('div');
+                    item.className = 'course-item';
+
+                    let actionsHTML = '';
+                    if (role === 'admin') {
+                        actionsHTML = `
+                            <div class="course-item-actions">
+                                <button class="edit-btn" onclick="editAssignment(${assignment.id}, '${assignment.courseName}', '${assignment.title}', '${assignment.description || ''}', '${assignment.dueDate || ''}')">Edit</button>
+                                <button class="delete-btn" onclick="deleteAssignment(${assignment.id})">Delete</button>
+                            </div>
+                        `;
+                    }
+                    
+                    const dueDate = assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date';
+
+                    item.innerHTML = `
+                        <div class="course-item-details">
+                            <h4>${assignment.title} <span style="font-size: 12px; color: #aaa; font-weight: normal;">(${assignment.courseName})</span></h4>
+                            <p>${assignment.description || 'No description'}</p>
+                            <p style="font-size: 12px; color: #03e9f4; margin-top: 5px;">Due: ${dueDate}</p>
+                        </div>
+                        ${actionsHTML}
+                    `;
+                    assignmentsList.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error("Error loading assignments:", error);
+                assignmentsList.innerHTML = '<p style="padding: 15px; color: #e74c3c;">Error loading assignments.</p>';
+            }
+        }
+
+        addAssignmentBtn.addEventListener('click', () => {
+            assignmentFormContainer.classList.remove('hidden');
+            assignmentFormTitle.textContent = 'Add New Assignment';
+            assignmentForm.reset();
+            assignmentIdInput.value = '';
+            cancelAssignmentBtn.classList.add('hidden');
+        });
+
+        function editAssignment(id, courseName, title, description, dueDate) {
+            assignmentFormContainer.classList.remove('hidden');
+            assignmentFormTitle.textContent = 'Edit Assignment';
+            assignmentIdInput.value = id;
+            assignmentCourseNameSelect.value = courseName;
+            assignmentTitleInput.value = title;
+            assignmentDescriptionInput.value = description;
+            assignmentDueDateInput.value = dueDate ? dueDate.split('T')[0] : '';
+            cancelAssignmentBtn.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        cancelAssignmentBtn.addEventListener('click', () => {
+            assignmentFormContainer.classList.add('hidden');
+            assignmentForm.reset();
+        });
+
+        assignmentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = assignmentIdInput.value;
+            const assignmentData = { courseName: assignmentCourseNameSelect.value, title: assignmentTitleInput.value, description: assignmentDescriptionInput.value, dueDate: assignmentDueDateInput.value };
+            const isEditing = !!id;
+            const url = isEditing ? `/api/assignments/${id}` : '/api/assignments';
+            const method = isEditing ? 'PUT' : 'POST';
+
+            const response = await fetch(`http://localhost:5000${url}`, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(assignmentData) });
+            const data = await response.json();
+            alert(data.message);
+
+            if (response.ok) {
+                assignmentFormContainer.classList.add('hidden');
+                assignmentForm.reset();
+                loadAssignments();
+            }
+        });
+
+        async function deleteAssignment(id) {
+            if (!confirm('Are you sure you want to delete this assignment?')) return;
+            const response = await fetch(`http://localhost:5000/api/assignments/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                loadAssignments();
+            }
+        }
+    </script>
+</body>
+</html>
